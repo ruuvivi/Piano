@@ -92,4 +92,13 @@ function play_note(frequency, Fs)
     
     % Soitetaan ääni
     sound(y, Fs);
+
+    function octave_down
+%Puolittaa jokaisen taajuuden
+note_frequencies=1/2*note_frequencies;
+end
+
+function octave_up
+%Tuplaa jokaisen taajuuden
+note_frequencies=2*note_frequencies;
 end
