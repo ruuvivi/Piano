@@ -88,12 +88,18 @@ function play_note(frequency, Fs)
     t = 0:1/Fs:duration;
 
     % Luodaan siniaalto
-    y = 0.5 * sin(2 * pi * frequency * t);
+    y = sin(2 .* pi .* frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t);
+    y = y + sin(2 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 2;
+    y = y + sin(3 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 4;
+    y = y + sin(5 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 16;
+    y = y + sin(6 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 32;
+    y = y.^3;
+    y = fmmod(y,frequency,Fs,1000);
     
     % Soitetaan ääni
     sound(y, Fs);
 
-    function octave_down
+function octave_down
 %Puolittaa jokaisen taajuuden
 note_frequencies=1/2*note_frequencies;
 end
