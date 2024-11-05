@@ -36,20 +36,11 @@ close all;
         'Position', [300, 300, 800, 400], 'MenuBar', 'none', 'Resize', 'on', ...
         'KeyPressFcn', @key_press);
 
-    % h-button
-    h = uicontrol('Position',[5 5 150 30],'String','Button',...
-              'Callback', @JCalh);
-    % Funktio, mitä tapahtuu kun ainetaan h-nappia (tässä Matlab esimerkki)
-    function JCalh(ButtonH, EventData)
-        function JCal(ButtonH, EventData)
-      [ppm, intensity] = ginput(2); 
-      J       = abs(diff(ppm))*600;
-      Jstr    = sprintf('J=%.1fHz', J);
-      meanppm = abs(mean(ppm));
-      ppmstr  = sprintf('%.3f', meanppm);
-      text(meanppm, mean(intensity), {['\delta' ppmstr]; Jstr});
-      end
-      end
+    % oktaavi alas- ja ylöspainikkeet
+    uicontrol('Style', 'pushbutton', 'String', 'Octave Down', ...
+              'Position', [5, 5, 100, 30], 'Callback', @octave_down);
+    uicontrol('Style', 'pushbutton', 'String', 'Octave Up', ...
+              'Position', [110, 5, 100, 30], 'Callback', @octave_up);
     
     % Luodaan valkoiset koskettimet
     for i = 1:length(white_key_names)
@@ -115,12 +106,15 @@ function play_note(frequency, Fs)
     sound(y, Fs);
 end
 
-function octave_down
+function octave_down(~, ~)
     %Puolittaa jokaisen taajuuden
-    note_frequencies=1/2*note_frequencies;
+    global note_frequencies;
+    note_frequencies = 1/2*note_frequencies;
 end
 
-function octave_up
+function octave_up(~, ~)
     %Tuplaa jokaisen taajuuden
+    global note_frequencies;
     note_frequencies=2*note_frequencies;
 end
+
