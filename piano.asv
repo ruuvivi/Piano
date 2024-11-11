@@ -7,9 +7,11 @@ function piano
 
     % A-nuotin taajuus (Hz) tunnustettu standardi sävelkorkeus
     A = 440;
+    ToneId = -21:2;
+    Piano.Sample = cell(size(ToneId));
     
     % Lasketaan nuotteja vastaavat taajuudet kahdelle oktaaville
-    Piano.note_frequencies = A * 2.^(([-21:2])/12); % Kaksi oktaavia
+    Piano.note_frequencies = A * 2.^(ToneId/12); % Kaksi oktaavia
 
     % Näyteenottotaajuus
     Piano.Fs = 44100;
@@ -29,24 +31,29 @@ function piano
     f = figure('Name', 'Piano Syntikka', 'NumberTitle', 'off', ...
         'Position', [300, 300, 750, 400], 'MenuBar', 'none', 'Resize', 'on', ...
         'KeyPressFcn', @key_press, ...
-        'Color', [1, 0.7, 0.8]);
+        'Color', [0, 0.3, 0]);
 
-    fontName = 'Harlow Solid Italic';
-    fontSize = 10;
+    fontName = 'Matura MT Script Capitals';
+    fontSize = 12;
     fontWeight = 'normal';
 
     % oktaavi alas- ja ylöspainikkeet
-    uicontrol('Style', 'pushbutton', 'String', 'Octave Down', ...
+    uicontrol('Style', 'pushbutton', 'String', 'octave down', ...
               'Position', [10, 280, 100, 30], 'Callback', @octave_down, ...
               'FontName', fontName, 'FontSize', fontSize, 'FontWeight', fontWeight);
 
-    uicontrol('Style', 'pushbutton', 'String', 'Octave Up', ...
+    uicontrol('Style', 'pushbutton', 'String', 'octave up', ...
               'Position', [115, 280, 100, 30], 'Callback', @octave_up, ...
               'FontName', fontName, 'FontSize', fontSize, 'FontWeight', fontWeight);
 
-    % ääniaallon vaihtopainikkeet
-    uicontrol('Style', 'pushbutton', 'String', 'Vibrato', ...
-              'Position', [10, 320, 100, 30], 'Callback', @vibrator, ...
+    % Vibrato ääniaalto
+    uicontrol('Style', 'pushbutton', 'String', 'vibrato', ...
+              'Position', [10, 320, 100, 30], 'Callback', @vibrato, ...
+              'FontName', fontName, 'FontSize', fontSize, 'FontWeight', fontWeight);
+    
+    % Normaali ääniaalto
+    uicontrol('Style', 'pushbutton', 'String', 'normal', ...
+              'Position', [115, 320, 100, 30], 'Callback', @normal, ...
               'FontName', fontName, 'FontSize', fontSize, 'FontWeight', fontWeight);
     
     % Luodaan valkoiset koskettimet
@@ -54,6 +61,7 @@ function piano
         Piano.white_keys(i) = uicontrol('Style', 'pushbutton', 'String', white_key_names{i}, ...
             'Position', [(i-1)*50 + 20, 40, 50, 200], ...
             'BackgroundColor', 'white', ...
+            'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
             'Callback', @(~,~) play_note(Piano.white_key_frequencies(i), Piano.Fs));
     end
     
@@ -65,6 +73,7 @@ function piano
         Piano.black_keys(i) = uicontrol('Style', 'pushbutton', 'String', black_key_names{i}, ...
             'Position', [black_key_positions(i), 140, 30, 120], ...
             'BackgroundColor', 'black', 'ForegroundColor', 'white', ...
+            'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
             'Callback', @(~,~) play_note(Piano.black_key_frequencies(i), Piano.Fs));
     end
 
@@ -79,7 +88,7 @@ function octave_down(~, ~)
     global Piano
     Piano.note_frequencies;
     Piano.note_frequencies = 1/2 * Piano.note_frequencies;
-    update_key_frequencies();
+    update_keys();
 end
 
 function octave_up(~, ~)
@@ -87,16 +96,29 @@ function octave_up(~, ~)
     global Piano
     Piano.note_frequencies;
     Piano.note_frequencies = 2 * Piano.note_frequencies;
-    update_key_frequencies();
+    update_keys();
 end
 
-function vibrator(~, ~)
+function vibrato(~, ~)
     global Piano
-    vibrato = sin(play_note()*sin((2*pi*4)*0.001);
+    duration = 0.5;
+    t = linspace(.)
+    for
+    Piano.note_frequencies;
+    Piano.note_frequencies = sin(Piano.note_frequencies()*sin((2*pi*4)*0.001));
+    update_keys();
+end
+
+function normal(~, ~)
+    global Piano
+    Piano.note_frequencies;
+    A = 440;
+    Piano.note_frequencies = A * 2.^(([-21:2])/12); % Kaksi oktaavia
+    update_keys();
 end
 
 % Funktio koskettimien taajuuksien päivittämiseen
-function update_key_frequencies()
+function update_keys()
     global Piano
     
     % Päivitetään valkoiset ja mustat kosketintaajuudet
@@ -182,4 +204,5 @@ function play_note(frequency, Fs)
     % Soitetaan ääni
     sound(y, Fs);
 end
+
 

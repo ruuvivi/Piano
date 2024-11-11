@@ -7,9 +7,11 @@ function piano
 
     % A-nuotin taajuus (Hz) tunnustettu standardi sävelkorkeus
     A = 440;
+    ToneId = -21:2;
+    Piano.Sample = cell(size(ToneId));
     
     % Lasketaan nuotteja vastaavat taajuudet kahdelle oktaaville
-    Piano.note_frequencies = A * 2.^(([-21:2])/12); % Kaksi oktaavia
+    Piano.note_frequencies = A * 2.^(ToneId/12); % Kaksi oktaavia
 
     % Näyteenottotaajuus
     Piano.Fs = 44100;
@@ -108,7 +110,7 @@ function normal(~, ~)
     global Piano
     Piano.note_frequencies;
     A = 440;
-    Piano.note_frequencies = A * 2.^(([-21:2])/12); % Kaksi oktaavia
+    Piano.note_frequencies = A * 2.^(([-21:2])/12);
     update_keys();
 end
 
