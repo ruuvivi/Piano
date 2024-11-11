@@ -27,14 +27,22 @@ function piano
     
     % Luodaan GUI ja määritetään mitä näppäintä koskettaessa mikäkin ääni
     f = figure('Name', 'Piano Syntikka', 'NumberTitle', 'off', ...
-        'Position', [300, 300, 1000, 400], 'MenuBar', 'none', 'Resize', 'on', ...
-        'KeyPressFcn', @key_press);
+        'Position', [300, 300, 750, 400], 'MenuBar', 'none', 'Resize', 'on', ...
+        'KeyPressFcn', @key_press, ...
+        'Color', [1, 0.7, 0.8]);
+
+    fontName = 'Harlow Solid Italic';
+    fontSize = 10;
+    fontWeight = 'normal';
 
     % oktaavi alas- ja ylöspainikkeet
     uicontrol('Style', 'pushbutton', 'String', 'Octave Down', ...
-              'Position', [5, 5, 100, 30], 'Callback', @octave_down);
+              'Position', [10, 280, 100, 30], 'Callback', @octave_down, ...
+              'FontName', fontName, 'FontSize', fontSize, 'FontWeight', fontWeight);
+
     uicontrol('Style', 'pushbutton', 'String', 'Octave Up', ...
-              'Position', [110, 5, 100, 30], 'Callback', @octave_up);
+              'Position', [115, 280, 100, 30], 'Callback', @octave_up, ...
+              'FontName', fontName, 'FontSize', fontSize, 'FontWeight', fontWeight);
     
     % Luodaan valkoiset koskettimet
     for i = 1:length(white_key_names)
@@ -57,7 +65,7 @@ function piano
 
     % Määritetään näppäimistönäppäimet vastaamaan koskettimia
     Piano.white_key_keyboard = {'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '''', 'z', 'x', 'c'};
-    Piano.black_key_keyboard = {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'};
+    Piano.black_key_keyboard = {'q','w', 'e', 'r', 't', 'y', 'u','i' 'o', 'p'};
 
 end
 
@@ -165,3 +173,4 @@ function play_note(frequency, Fs)
     % Soitetaan ääni
     sound(y, Fs);
 end
+
