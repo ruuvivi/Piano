@@ -1,32 +1,32 @@
 function piano
 
-clc;
-clear all;
-close all;
+    clc;
+    clear all;
+    close all;
     global Piano
 
     % A-nuotin taajuus (Hz) tunnustettu standardi sävelkorkeus
     A = 440;
     
-    % Lasketaan nuotteja vastaavat taajuudet
-    Piano.note_frequencies = A * 2.^(([-9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2])/12);
-
+    % Lasketaan nuotteja vastaavat taajuudet kahdelle oktaaville
+    Piano.note_frequencies = A * 2.^(([-21:2])/12); % Kaksi oktaavia
+    
     % Näyteenottotaajuus
     Piano.Fs = 44100;
     
     % Nimet koskettimille
-    white_key_names = {'C', 'D', 'E', 'F', 'G', 'A', 'B'};
-    black_key_names = {'C#', 'D#', 'F#', 'G#', 'A#'};
+    white_key_names = {'C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A', 'B'};
+    black_key_names = {'C#', 'D#', 'F#', 'G#', 'A#', 'C#', 'D#', 'F#', 'G#', 'A#'};
     
     % Valkoiset koskettimet vastaaviin taajuuksiin
-    Piano.white_key_frequencies = [Piano.note_frequencies([1, 3, 5, 6, 8, 10, 12])];
+    Piano.white_key_frequencies = Piano.note_frequencies([1, 3, 5, 6, 8, 10, 12, 13, 15, 17, 18, 20, 22, 24]);
     
     % Mustat koskettimet vastaaviin taajuuksiin
-    Piano.black_key_frequencies = [Piano.note_frequencies([2, 4, 7, 9, 11])];
+    Piano.black_key_frequencies = Piano.note_frequencies([2, 4, 7, 9, 11, 14, 16, 19, 21, 23]);
     
     % Luodaan GUI ja määritetään mitä näppäintä koskettaessa mikäkin ääni
     f = figure('Name', 'Piano Syntikka', 'NumberTitle', 'off', ...
-        'Position', [300, 300, 800, 400], 'MenuBar', 'none', 'Resize', 'on', ...
+        'Position', [300, 300, 1000, 400], 'MenuBar', 'none', 'Resize', 'on', ...
         'KeyPressFcn', @key_press);
 
     % oktaavi alas- ja ylöspainikkeet
@@ -44,10 +44,9 @@ close all;
     end
     
     % Paikat mustille koskettimille (valkoisten keskelle)
-    black_key_positions = [55, 105, 205, 255, 305];  
+    black_key_positions = [55, 105, 205, 255, 305, 405, 455, 555, 605, 655];  
 
-    % Luodaan mustat koskettimet
-    % Luo mustat koskettimet ja tallenna ne Piano-rakenteeseen
+    % Luodaan mustat koskettimet ja tallennetaan ne Piano-rakenteeseen
     for i = 1:length(black_key_names)
         Piano.black_keys(i) = uicontrol('Style', 'pushbutton', 'String', black_key_names{i}, ...
             'Position', [black_key_positions(i), 140, 30, 120], ...
@@ -56,8 +55,8 @@ close all;
     end
 
     % Määritetään näppäimistönäppäimet vastaamaan koskettimia
-    Piano.white_key_keyboard = {'a', 's', 'd', 'f', 'g', 'h', 'j'}; % Valkoiset koskettimet
-    Piano.black_key_keyboard = {'w', 'e', 't', 'y', 'u'};           % Mustat koskettimet
+    Piano.white_key_keyboard = {'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '''', 'z', 'x', 'c'};
+    Piano.black_key_keyboard = {'w', 'e', 't', 'y', 'u', 'o', 'p', '[', ']', '\\'};
 
 end
 
@@ -65,7 +64,7 @@ function octave_down(~, ~)
     %Puolittaa jokaisen taajuuden
     global Piano
     Piano.note_frequencies;
-    Piano.note_frequencies = 1/2*Piano.note_frequencies;
+    Piano.note_frequencies = 1/2 * Piano.note_frequencies;
     update_key_frequencies();
 end
 
@@ -73,7 +72,7 @@ function octave_up(~, ~)
     %Tuplaa jokaisen taajuuden
     global Piano
     Piano.note_frequencies;
-    Piano.note_frequencies=2*Piano.note_frequencies;
+    Piano.note_frequencies = 2 * Piano.note_frequencies;
     update_key_frequencies();
 end
 
@@ -82,8 +81,8 @@ function update_key_frequencies()
     global Piano
     
     % Päivitetään valkoiset ja mustat kosketintaajuudet
-    Piano.white_key_frequencies = Piano.note_frequencies([1, 3, 5, 6, 8, 10, 12]);
-    Piano.black_key_frequencies = Piano.note_frequencies([2, 4, 7, 9, 11]);
+    Piano.white_key_frequencies = Piano.note_frequencies([1, 3, 5, 6, 8, 10, 12, 13, 15, 17, 18, 20, 22, 24]);
+    Piano.black_key_frequencies = Piano.note_frequencies([2, 4, 7, 9, 11, 14, 16, 19, 21, 23]);
     
     % Asetetaan päivitetyt taajuudet valkoisille koskettimille
     for i = 1:length(Piano.white_keys)
@@ -95,7 +94,6 @@ function update_key_frequencies()
         set(Piano.black_keys(i), 'Callback', @(~,~) play_note(Piano.black_key_frequencies(i), Piano.Fs));
     end
 end
-
 
 % Funktio: mitä näppäintä koskettaessa mikäkin ääni
 function key_press(~, event)
@@ -109,12 +107,12 @@ function key_press(~, event)
     
     % Jos painettiin valkoista kosketinta vastaavaa näppäintä
     if ~isempty(white_key_i)
-        play_note(Piano.white_key_frequencies(white_key_i), Fs);
+        play_note(Piano.white_key_frequencies(white_key_i), Piano.Fs);
     end
     
     % Jos painettiin mustaa kosketinta vastaavaa näppäintä
     if ~isempty(black_key_i)
-        play_note(Piano.black_key_frequencies(black_key_i), Fs);
+        play_note(Piano.black_key_frequencies(black_key_i), Piano.Fs);
     end
 end
 
