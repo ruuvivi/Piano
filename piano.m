@@ -15,8 +15,9 @@ function piano
     Piano.Fs = 44100;
     
     % Nimet koskettimille
-    white_key_names = {'C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A', 'B'};
-    black_key_names = {'C#', 'D#', 'F#', 'G#', 'A#', 'C#', 'D#', 'F#', 'G#', 'A#'};
+    white_key_names = {'C / a', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A', 'B'};
+    black_key_names = {'C# / q', 'D#', 'F#', 'G#', 'A#', 'C#', 'D#', 'F#', 'G#', 'A#'};
+    
     
     % Valkoiset koskettimet vastaaviin taajuuksiin
     Piano.white_key_frequencies = Piano.note_frequencies([1, 3, 5, 6, 8, 10, 12, 13, 15, 17, 18, 20, 22, 24]);
@@ -56,7 +57,7 @@ function piano
 
     % Määritetään näppäimistönäppäimet vastaamaan koskettimia
     Piano.white_key_keyboard = {'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '''', 'z', 'x', 'c'};
-    Piano.black_key_keyboard = {'w', 'e', 't', 'y', 'u', 'o', 'p', '[', ']', '\\'};
+    Piano.black_key_keyboard = {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'};
 
 end
 
@@ -119,20 +120,48 @@ end
 function play_note(frequency, Fs)
 
     % Nuotin kesto
-    duration = 0.25;
+    duration = 0.5;
+    t = 0:1/Fs:duration;
     
     % Aikavektori
     t = 0:1/Fs:duration;
 
-    % Luodaan siniaalto
-    y = sin(2 .* pi .* frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t);
-    y = y + sin(2 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 2;
-    y = y + sin(3 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 4;
-    y = y + sin(5 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 16;
-    y = y + sin(6 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 32;
-    y = y.^3;
-    y = fmmod(y,frequency,Fs,1000);
+    % Luodaan siniaalto (1. versio)
+    %y = sin(2 .* pi .* frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t);
+    %y = y + sin(2 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 2;
+    %y = y + sin(3 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 4;
+    %y = y + sin(5 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 16;
+    %y = y + sin(6 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 32;
+    %y = y.^3;
+    %y = fmmod(y,frequency,Fs,1000);
+
+    % FM-synteesi: taajuusmoduloitu signaali: kokeilu 1 ------->
+
+    % Modulaattori- ja kantataajuus (vasaraääni)
+    modulator_freq = 200; % Korkea taajuus nopeaa vaimenemista varten
+    modulation_index = 2.5;
+
+    modulator = sin(2 * pi * modulator_freq * t);
+    y = sin(2 * pi * frequency * t + modulation_index * modulator);
+
+    % Eksponentiaalinen vaimeneminen, joka simuloi vasaran ääntä
+    envelope = exp(-4 * t);
+    y = y .* envelope;
     
+    % FM-synteesi: taajuusmoduloitu signaali: kokeilu 2 (kokeiltu yhdistää
+    % 1. versioon) ------->
+    %modulator = sin(2 * pi * modulator_freq * t).* exp(-0.0004 .* 2 .* pi .* modulator_freq .* t);
+    %y = modulator + sin(2 .* 2 .* pi * modulator_freq .* t) .* exp(-0.0004 .* 2 .* pi .* modulator_freq .* t) ./ 2;
+    %y = y + sin(3 .* 2 .* pi * modulator_freq .* t) .* exp(-0.0004 .* 2 .* pi .* modulator_freq .* t) ./ 4;
+    %y = y + sin(5 .* 2 .* pi * modulator_freq .* t) .* exp(-0.0004 .* 2 .* pi .* modulator_freq .* t) ./ 16;
+    %y = y + sin(6 .* 2 .* pi * modulator_freq .* t) .* exp(-0.0004 .* 2 .* pi .* modulator_freq .* t) ./ 32;
+    %y = y.^3;
+    %y = sin(2 * pi * frequency * t + modulation_index * modulator);
+
+    % Eksponentiaalinen vaimeneminen - simuloi vasaran ääntä
+    %envelope = exp(-4 * t);
+    %y = y .* envelope;
+
     % Soitetaan ääni
     sound(y, Fs);
 end
