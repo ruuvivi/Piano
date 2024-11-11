@@ -10,7 +10,7 @@ function piano
     
     % Lasketaan nuotteja vastaavat taajuudet kahdelle oktaaville
     Piano.note_frequencies = A * 2.^(([-21:2])/12); % Kaksi oktaavia
-    
+
     % Näyteenottotaajuus
     Piano.Fs = 44100;
     
@@ -43,6 +43,16 @@ function piano
     uicontrol('Style', 'pushbutton', 'String', 'Octave Up', ...
               'Position', [115, 280, 100, 30], 'Callback', @octave_up, ...
               'FontName', fontName, 'FontSize', fontSize, 'FontWeight', fontWeight);
+
+    % Vibrato ääniaalto
+    uicontrol('Style', 'pushbutton', 'String', 'Vibrato', ...
+              'Position', [10, 320, 100, 30], 'Callback', @vibrato, ...
+              'FontName', fontName, 'FontSize', fontSize, 'FontWeight', fontWeight);
+    
+    % Normaali ääniaalto
+    uicontrol('Style', 'pushbutton', 'String', 'Normal', ...
+              'Position', [115, 320, 100, 30], 'Callback', @normal, ...
+              'FontName', fontName, 'FontSize', fontSize, 'FontWeight', fontWeight);
     
     % Luodaan valkoiset koskettimet
     for i = 1:length(white_key_names)
@@ -74,7 +84,7 @@ function octave_down(~, ~)
     global Piano
     Piano.note_frequencies;
     Piano.note_frequencies = 1/2 * Piano.note_frequencies;
-    update_key_frequencies();
+    update_keys();
 end
 
 function octave_up(~, ~)
@@ -82,11 +92,26 @@ function octave_up(~, ~)
     global Piano
     Piano.note_frequencies;
     Piano.note_frequencies = 2 * Piano.note_frequencies;
-    update_key_frequencies();
+    update_keys();
+end
+
+function vibrato(~, ~)
+    global Piano
+    Piano.note_frequencies;
+    Piano.note_frequencies = sin(Piano.note_frequencies()*sin((2*pi*4)*0.001));
+    update_keys();
+end
+
+function normal(~, ~)
+    global Piano
+    Piano.note_frequencies;
+    A = 440;
+    Piano.note_frequencies = A * 2.^(([-21:2])/12); % Kaksi oktaavia
+    update_keys();
 end
 
 % Funktio koskettimien taajuuksien päivittämiseen
-function update_key_frequencies()
+function update_keys()
     global Piano
     
     % Päivitetään valkoiset ja mustat kosketintaajuudet
@@ -129,7 +154,6 @@ function play_note(frequency, Fs)
 
     % Nuotin kesto
     duration = 0.5;
-    t = 0:1/Fs:duration;
     
     % Aikavektori
     t = 0:1/Fs:duration;
