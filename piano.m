@@ -171,7 +171,6 @@ function play_note(frequency, Fs)
             y = y + sin(6 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 32;
             y = y.^3;
             y = fmmod(y,frequency,Fs,1000); % modulaatio
-            % Eksponentiaalinen vaimeneminen, joka simuloi vasaran ääntä
         case 'triangle'
             y = sawtooth(2 * pi * frequency * t, 0.5); % Triangle wave
         case 'square'
@@ -179,7 +178,8 @@ function play_note(frequency, Fs)
         case 'sawtooth'
             y = sawtooth(2 * pi * frequency * t); % Sawtooth wave
     end
-
+    
+    % Eksponentiaalinen vaimeneminen, joka simuloi vasaran ääntä
     envelope = exp(-4 * t);
     y = y .* envelope;
 
