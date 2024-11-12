@@ -4,10 +4,12 @@ function piano
     clear all;
     close all;
     global Piano
+    
+    Piano.waveform = 'sine';
 
     % A-nuotin taajuus (Hz) tunnustettu standardi sävelkorkeus
     A = 440;
-    ToneId = -21:2;
+    ToneId = -9:2;
     Piano.Sample = cell(size(ToneId));
     
     % Lasketaan nuotteja vastaavat taajuudet kahdelle oktaaville
@@ -17,15 +19,15 @@ function piano
     Piano.Fs = 44100;
     
     % Nimet koskettimille
-    white_key_names = {'C / a', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A', 'B'};
-    black_key_names = {'C# / q', 'D#', 'F#', 'G#', 'A#', 'C#', 'D#', 'F#', 'G#', 'A#'};
+    white_key_names = {'C', 'D', 'E', 'F', 'G', 'A', 'B'};
+    black_key_names = {'C#', 'D#', 'F#', 'G#', 'A#'};
     
     
     % Valkoiset koskettimet vastaaviin taajuuksiin
-    Piano.white_key_frequencies = Piano.note_frequencies([1, 3, 5, 6, 8, 10, 12, 13, 15, 17, 18, 20, 22, 24]);
+    Piano.white_key_frequencies = Piano.note_frequencies([1, 3, 5, 6, 8, 10, 12]);
     
     % Mustat koskettimet vastaaviin taajuuksiin
-    Piano.black_key_frequencies = Piano.note_frequencies([2, 4, 7, 9, 11, 14, 16, 19, 21, 23]);
+    Piano.black_key_frequencies = Piano.note_frequencies([2, 4, 7, 9, 11]);
     
     % Luodaan GUI ja määritetään mitä näppäintä koskettaessa mikäkin ääni
     f = figure('Name', 'Piano Syntikka', 'NumberTitle', 'off', ...
@@ -45,16 +47,23 @@ function piano
     uicontrol('Style', 'pushbutton', 'String', 'octave up', ...
               'Position', [115, 280, 100, 30], 'Callback', @octave_up, ...
               'FontName', fontName, 'FontSize', fontSize, 'FontWeight', fontWeight);
-
-    % Vibrato ääniaalto
-    uicontrol('Style', 'pushbutton', 'String', 'vibrato', ...
-              'Position', [10, 320, 100, 30], 'Callback', @vibrato, ...
-              'FontName', fontName, 'FontSize', fontSize, 'FontWeight', fontWeight);
     
-    % Normaali ääniaalto
-    uicontrol('Style', 'pushbutton', 'String', 'normal', ...
-              'Position', [115, 320, 100, 30], 'Callback', @normal, ...
-              'FontName', fontName, 'FontSize', fontSize, 'FontWeight', fontWeight);
+    % nappuloita eri äniaalloille
+
+    % Normaali Piano
+    uicontrol('Style', 'pushbutton', 'String', 'Piano', ...
+              'Position', [10, 360, 100, 30], 'Callback', @(~,~) set_waveform('sine'), ...
+              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
+    
+    % kolmioaalto
+    uicontrol('Style', 'pushbutton', 'String', 'Triangle Wave', ...
+              'Position', [115, 360, 100, 30], 'Callback', @(~,~) set_waveform('triangle'), ...
+              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
+    
+    % neliöaalto
+    uicontrol('Style', 'pushbutton', 'String', 'Square Wave', ...
+              'Position', [220, 360, 100, 30], 'Callback', @(~,~) set_waveform('square'), ...
+              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
     
     % Luodaan valkoiset koskettimet
     for i = 1:length(white_key_names)
@@ -66,7 +75,7 @@ function piano
     end
     
     % Paikat mustille koskettimille (valkoisten keskelle)
-    black_key_positions = [55, 105, 205, 255, 305, 405, 455, 555, 605, 655];  
+    black_key_positions = [55, 105, 205, 255, 305];  
 
     % Luodaan mustat koskettimet ja tallennetaan ne Piano-rakenteeseen
     for i = 1:length(black_key_names)
@@ -78,8 +87,8 @@ function piano
     end
 
     % Määritetään näppäimistönäppäimet vastaamaan koskettimia
-    Piano.white_key_keyboard = {'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '''', 'z', 'x', 'c'};
-    Piano.black_key_keyboard = {'q','w', 'e', 'r', 't', 'y', 'u','i' 'o', 'p'};
+    Piano.white_key_keyboard = {'a', 's', 'd', 'f', 'g', 'h', 'j'};
+    Piano.black_key_keyboard = {'q','w', 'e', 'r', 't'};
 
 end
 
@@ -92,26 +101,16 @@ function octave_down(~, ~)
 end
 
 function octave_up(~, ~)
-    %Tuplaa jokaisen taajuuden
+    % Tuplaa jokaisen taajuuden
     global Piano
     Piano.note_frequencies;
     Piano.note_frequencies = 2 * Piano.note_frequencies;
     update_keys();
 end
 
-function vibrato(~, ~)
+function set_waveform(shape)
     global Piano
-    Piano.note_frequencies;
-    Piano.note_frequencies = sin(Piano.note_frequencies()*sin((2*pi*4)*0.001));
-    update_keys();
-end
-
-function normal(~, ~)
-    global Piano
-    Piano.note_frequencies;
-    A = 440;
-    Piano.note_frequencies = A * 2.^(([-21:2])/12);
-    update_keys();
+    Piano.waveform = shape;
 end
 
 % Funktio koskettimien taajuuksien päivittämiseen
@@ -119,15 +118,15 @@ function update_keys()
     global Piano
     
     % Päivitetään valkoiset ja mustat kosketintaajuudet
-    Piano.white_key_frequencies = Piano.note_frequencies([1, 3, 5, 6, 8, 10, 12, 13, 15, 17, 18, 20, 22, 24]);
-    Piano.black_key_frequencies = Piano.note_frequencies([2, 4, 7, 9, 11, 14, 16, 19, 21, 23]);
+    Piano.white_key_frequencies = Piano.note_frequencies([1, 3, 5, 6, 8, 10, 12]);
+    Piano.black_key_frequencies = Piano.note_frequencies([2, 4, 7, 9, 11]);
     
-    % Asetetaan päivitetyt taajuudet valkoisille koskettimille
+    % Päivitetyt taajuudet valkoisille koskettimille
     for i = 1:length(Piano.white_keys)
         set(Piano.white_keys(i), 'Callback', @(~,~) play_note(Piano.white_key_frequencies(i), Piano.Fs));
     end
 
-    % Asetetaan päivitetyt taajuudet mustille koskettimille
+    % Päivitetyt taajuudet mustille koskettimille
     for i = 1:length(Piano.black_keys)
         set(Piano.black_keys(i), 'Callback', @(~,~) play_note(Piano.black_key_frequencies(i), Piano.Fs));
     end
@@ -140,7 +139,7 @@ function key_press(~, event)
     key = event.Key;
     
     % Tarkistetaan, onko näppäin valkoinen tai musta kosketin
-    white_key_i = find(strcmp(Piano.white_key_keyboard, key), 1); % compare string
+    white_key_i = find(strcmp(Piano.white_key_keyboard, key), 1);
     black_key_i = find(strcmp(Piano.black_key_keyboard, key), 1);
     
     % Jos painettiin valkoista kosketinta vastaavaa näppäintä
@@ -155,48 +154,34 @@ function key_press(~, event)
 end
 
 function play_note(frequency, Fs)
-
+    global Piano
     % Nuotin kesto
     duration = 0.5;
     
     % Aikavektori
     t = 0:1/Fs:duration;
 
-    % Luodaan siniaalto (1. versio)
-    %y = sin(2 .* pi .* frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t);
-    %y = y + sin(2 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 2;
-    %y = y + sin(3 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 4;
-    %y = y + sin(5 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 16;
-    %y = y + sin(6 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 32;
-    %y = y.^3;
-    %y = fmmod(y,frequency,Fs,1000);
+    switch Piano.waveform
+        case 'sine'
+            % Luodaan siniaalto, FM-synteesi, taajuusmodulaatio
+            y = sin(2 .* pi .* frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t);
+            y = y + sin(2 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 2;
+            y = y + sin(3 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 4;
+            y = y + sin(5 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 16;
+            y = y + sin(6 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 32;
+            y = y.^3;
+            y = fmmod(y,frequency,Fs,1000); % modulaatio
+            % Eksponentiaalinen vaimeneminen, joka simuloi vasaran ääntä
+        case 'triangle'
+            y = sawtooth(2 * pi * frequency * t, 0.5); % Triangle wave
+        case 'square'
+            y = square(2 * pi * frequency * t); % Square wave
+        case 'sawtooth'
+            y = sawtooth(2 * pi * frequency * t); % Sawtooth wave
+    end
 
-    % FM-synteesi: taajuusmoduloitu signaali: kokeilu 1 ------->
-
-    % Modulaattori- ja kantataajuus (vasaraääni)
-    modulator_freq = 200; % Korkea taajuus nopeaa vaimenemista varten
-    modulation_index = 2.5;
-
-    modulator = sin(2 * pi * modulator_freq * t);
-    y = sin(2 * pi * frequency * t + modulation_index * modulator);
-
-    % Eksponentiaalinen vaimeneminen, joka simuloi vasaran ääntä
     envelope = exp(-4 * t);
     y = y .* envelope;
-    
-    % FM-synteesi: taajuusmoduloitu signaali: kokeilu 2 (kokeiltu yhdistää
-    % 1. versioon) ------->
-    %modulator = sin(2 * pi * modulator_freq * t).* exp(-0.0004 .* 2 .* pi .* modulator_freq .* t);
-    %y = modulator + sin(2 .* 2 .* pi * modulator_freq .* t) .* exp(-0.0004 .* 2 .* pi .* modulator_freq .* t) ./ 2;
-    %y = y + sin(3 .* 2 .* pi * modulator_freq .* t) .* exp(-0.0004 .* 2 .* pi .* modulator_freq .* t) ./ 4;
-    %y = y + sin(5 .* 2 .* pi * modulator_freq .* t) .* exp(-0.0004 .* 2 .* pi .* modulator_freq .* t) ./ 16;
-    %y = y + sin(6 .* 2 .* pi * modulator_freq .* t) .* exp(-0.0004 .* 2 .* pi .* modulator_freq .* t) ./ 32;
-    %y = y.^3;
-    %y = sin(2 * pi * frequency * t + modulation_index * modulator);
-
-    % Eksponentiaalinen vaimeneminen - simuloi vasaran ääntä
-    %envelope = exp(-4 * t);
-    %y = y .* envelope;
 
     % Soitetaan ääni
     sound(y, Fs);
