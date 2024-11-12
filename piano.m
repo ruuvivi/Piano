@@ -64,6 +64,11 @@ function piano
     uicontrol('Style', 'pushbutton', 'String', 'Square Wave', ...
               'Position', [220, 360, 100, 30], 'Callback', @(~,~) set_waveform('square'), ...
               'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
+
+     % vibrato
+    uicontrol('Style', 'pushbutton', 'String', 'Vibrato', ...
+              'Position', [220, 360, 100, 30], 'Callback', @(~,~) set_waveform('vibrato'), ...
+              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
     
     % Luodaan valkoiset koskettimet
     for i = 1:length(white_key_names)
@@ -161,6 +166,13 @@ function play_note(frequency, Fs)
     % Aikavektori
     t = 0:1/Fs:duration;
 
+    % Vibrato säädöt
+    vibrato_frequency = 4;         
+    vibrato_depth = 0.001;         
+
+    vibrato = sin(2 * pi * vibrato_frequency * t) * vibrato_depth;
+    a = 2 * pi * frequency * t;
+
     switch Piano.waveform
         case 'sine'
             % Luodaan siniaalto, FM-synteesi, taajuusmodulaatio
@@ -171,20 +183,19 @@ function play_note(frequency, Fs)
             y = y + sin(6 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 32;
             y = y.^3;
             y = fmmod(y,frequency,Fs,1000); % modulaatio
+            % Eksponentiaalinen vaimeneminen, joka simuloi vasaran ääntä
         case 'triangle'
             y = sawtooth(2 * pi * frequency * t, 0.5); % Triangle wave
         case 'square'
             y = square(2 * pi * frequency * t); % Square wave
-        case 'sawtooth'
-            y = sawtooth(2 * pi * frequency * t); % Sawtooth wave
+        case 'vibrato'
+            y = sin(a + 2 * pi * frequency * vibrato);
     end
-    
-    % Eksponentiaalinen vaimeneminen, joka simuloi vasaran ääntä
+
     envelope = exp(-4 * t);
     y = y .* envelope;
 
     % Soitetaan ääni
     sound(y, Fs);
 end
-
 
