@@ -13,7 +13,7 @@ function piano
     Piano.Sample = cell(size(ToneId));
     
     % Lasketaan nuotteja vastaavat taajuudet kahdelle oktaaville
-    Piano.note_frequencies = A * 2.^(ToneId/12); % Kaksi oktaavia
+    Piano.note_frequencies = A * 2.^(ToneId/12);
 
     % Näyteenottotaajuus
     Piano.Fs = 44100;
@@ -161,30 +161,42 @@ function play_note(frequency, Fs)
     % Aikavektori
     t = 0:1/Fs:duration;
 
+    % https://users.cs.cf.ac.uk/Dave.Marshall/Multimedia/PDF/CM3106lab3wk4.pdf
+    % Alla FM-modulaatio pianoäänen simuloimiseksi
+    mod_freq = frequency * 2; % Modulaattoritaajuus (2x kantataajuus)
+    mod_index = 5; % Modulaation syvyys
+    
+    % Modulaattorioskillaattori
+    mod = sin(2 * pi * mod_freq * t);
+
     switch Piano.waveform
         case 'sine'
+        
+            % FM-synteesi: kantataajuuden taajuus modifioitu modulaattorilla
+            y = sin(2 * pi * frequency * t + mod_index * mod);
+
+            % Alla additiivinen synteesi piano-äänen simuloimiseksi
             % Luodaan siniaalto, FM-synteesi, taajuusmodulaatio
-            y = sin(2 .* pi .* frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t);
-            y = y + sin(2 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 2;
-            y = y + sin(3 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 4;
-            y = y + sin(5 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 16;
-            y = y + sin(6 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 32;
-            y = y.^3;
-            y = fmmod(y,frequency,Fs,1000); % modulaatio
+            %y = sin(2 .* pi .* frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t);
+            %y = y + sin(2 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 2;
+            %y = y + sin(3 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 4;
+            %y = y + sin(5 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 16;
+            %y = y + sin(6 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 32;
+            %y = y.^3;
+            %y = fmmod(y,frequency,Fs,1000); % modulaatio
         case 'triangle'
-            y = sawtooth(2 * pi * frequency * t, 0.5); % Triangle wave
+            y = sawtooth(2 * pi * frequency * t + mod_index * mod, 0.5); % Triangle wave
         case 'square'
-            y = square(2 * pi * frequency * t); % Square wave
+            y = square(2 * pi * frequency * t + mod_index * mod); % Square wave
         case 'sawtooth'
-            y = sawtooth(2 * pi * frequency * t); % Sawtooth wave
+            y = sawtooth(2 * pi * frequency * t + mod_index * mod); % Sawtooth wave
     end
-    
-    % Eksponentiaalinen vaimeneminen, joka simuloi vasaran ääntä
+
+    % Eksponentiaalinen vaimeneminen, joka simuloi vasaran ääntä =
+    % vaippafunktio
     envelope = exp(-4 * t);
     y = y .* envelope;
 
     % Soitetaan ääni
     sound(y, Fs);
 end
-
-
