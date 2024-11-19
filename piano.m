@@ -67,7 +67,12 @@ function piano
 
      % vibrato
     uicontrol('Style', 'pushbutton', 'String', 'Vibrato', ...
-              'Position', [220, 360, 100, 30], 'Callback', @(~,~) set_waveform('vibrato'), ...
+              'Position', [325, 360, 100, 30], 'Callback', @(~,~) set_waveform('vibrato'), ...
+              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
+
+    % fm-synteesi
+    uicontrol('Style', 'pushbutton', 'String', 'FM-synthesis', ...
+              'Position', [430, 360, 100, 30], 'Callback', @(~,~) set_waveform('fm'), ...
               'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
     
     % Luodaan valkoiset koskettimet
@@ -166,13 +171,6 @@ function play_note(frequency, Fs)
     % Aikavektori
     t = 0:1/Fs:duration;
 
-    % Alla FM-modulaatio pianoäänen simuloimiseksi
-    mod_freq = frequency * 2; % Modulaattoritaajuus (2x kantataajuus)
-    mod_index = 5; % Modulaation syvyys
-    
-    % Modulaattorioskillaattori
-    mod = sin(2 * pi * mod_freq * t);
-
     % Vibrato säädöt
     vibrato_frequency = 4;         
     vibrato_depth = 0.001;         
@@ -180,35 +178,49 @@ function play_note(frequency, Fs)
     vibrato = sin(2 * pi * vibrato_frequency * t) * vibrato_depth;
     a = 2 * pi * frequency * t;
 
+    envelope = exp(-4 * t); % exponentiaalinen vaimenenminen jäljittämään pianon ääntä
+
     switch Piano.waveform
         case 'sine'
-        
-            % FM-synteesi: kantataajuuden taajuus modifioitu modulaattorilla
-            y = sin(2 * pi * frequency * t + mod_index * mod);
-
             % Alla additiivinen synteesi piano-äänen simuloimiseksi
             % Luodaan siniaalto, FM-synteesi, taajuusmodulaatio
-            %y = sin(2 .* pi .* frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t);
-            %y = y + sin(2 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 2;
-            %y = y + sin(3 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 4;
-            %y = y + sin(5 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 16;
-            %y = y + sin(6 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 32;
-            %y = y.^3;
-            %y = fmmod(y,frequency,Fs,1000); % modulaatio
+            y = sin(2 .* pi .* frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t);
+            y = y + sin(2 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 2;
+            y = y + sin(3 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 4;
+            y = y + sin(5 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 16;
+            y = y + sin(6 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 32;
+            y = y.^3;
+            y = fmmod(y,frequency,Fs,1000); % modulaatio
+            y = y .* envelope;
         case 'triangle'
-            y = sawtooth(2 * pi * frequency * t + mod_index * mod, 0.5); % Triangle wave
+            y = sawtooth(2 * pi * frequency * t); % Triangle wave
         case 'square'
-            y = square(2 * pi * frequency * t + mod_index * mod); % Square wave
+            y = square(2 * pi * frequency * t); % Square wave
         case 'sawtooth'
-            y = sawtooth(2 * pi * frequency * t + mod_index * mod); % Sawtooth wave
+            y = sawtooth(2 * pi * frequency * t); % Sawtooth wave
         case 'vibrato'
-            y = sin(a + 2 * pi * frequency * vibrato + mod_index * mod);
-    end
+            y = sin(a + 2 * pi * frequency * vibrato);
+        case 'fm'
+            % Alla FM-synteesi
+            mod_freq = 100; % Modulaattoritaajuus (2x kantataajuus)
+            %mod_freq:
+            % Pienet arvot (esim. 10–50 Hz) tuottavat hitaampaa muuntelua ja pulssimaisia efektiä
+            %Suuret arvot (100–300 Hz) lisäävät rikkaampia harmonisia
+            %komponentteja sekä "metallisia ääniä"
 
-    % Eksponentiaalinen vaimeneminen, joka simuloi vasaran ääntä =
-    % vaippafunktio
-    envelope = exp(-4 * t);
-    y = y .* envelope;
+            mod_index = 5; % Modulaatioindeksi = kuinka voimakkaasti modulaattori vaikuttaa
+            % pienet arvot = hienovaraista muuntelua esim 2
+            % suuret arvot = monimutkaisempia ja aggressiivisempia ääniä
+            % esim 10
+            % Modulaattorioskillaatio
+            mod = sin(2 * pi * mod_freq * t);
+        
+            % FM-synteesi: hetkellinen taajuus jota ohjaa modulaattori
+            %inst_phase = sin(2 * pi * frequency * t + mod_index * mod);
+            inst_phase = sin(2 * pi .* mod_index .* mod .* t);
+            
+            y = inst_phase .* envelope;
+    end
 
     % Soitetaan ääni
     sound(y, Fs);
