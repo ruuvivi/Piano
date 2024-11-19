@@ -7,12 +7,22 @@ function piano
     
     Piano.waveform = 'sine';
 
+    % ADSR parameterit
+    global ADSR
+    ADSR.attack = 0.1;   % vakio attack aika
+    ADSR.decay = 0.1;    % vakio decay aika
+    ADSR.sustain = 0.7;  % vakio sustain taso
+    ADSR.release = 0.2;  % vakio release aika
+
+    global FM
+    FM.mod_index = 10; % vakio mod indeksi
+
     % A-nuotin taajuus (Hz) tunnustettu standardi sävelkorkeus
     A = 440;
     ToneId = -9:2;
     Piano.Sample = cell(size(ToneId));
     
-    % Lasketaan nuotteja vastaavat taajuudet kahdelle oktaaville
+    % Lasketaan nuotteja vastaavat taajuudet
     Piano.note_frequencies = A * 2.^(ToneId/12);
 
     % Näyteenottotaajuus
@@ -38,6 +48,38 @@ function piano
     fontName = 'Matura MT Script Capitals';
     fontSize = 12;
     fontWeight = 'normal';
+
+    % FM-mod indeksille painike
+    uicontrol('Style', 'text', 'String', 'Mod:', ...
+              'Position', [500, 240, 50, 20], 'BackgroundColor', 'white');
+    Piano.mod_slider = uicontrol('Style', 'slider', 'Min', 1, 'Max', 20, ...
+              'Value', FM.mod_index, 'Position', [600, 240, 100, 20], ...
+              'Callback', @(src, ~) update_mod_index('mod', src.Value));
+
+    % ADSR-painikkeet
+    uicontrol('Style', 'text', 'String', 'Attack:', ...
+              'Position', [500, 200, 50, 20], 'BackgroundColor', 'white');
+    Piano.attack_slider = uicontrol('Style', 'slider', 'Min', 0.01, 'Max', 1, ...
+              'Value', ADSR.attack, 'Position', [600, 200, 100, 20], ...
+              'Callback', @(src, ~) update_adsr('attack', src.Value));
+    
+    uicontrol('Style', 'text', 'String', 'Decay:', ...
+              'Position', [500, 160, 50, 20], 'BackgroundColor', 'white');
+    Piano.decay_slider = uicontrol('Style', 'slider', 'Min', 0.01, 'Max', 1, ...
+              'Value', ADSR.decay, 'Position', [600, 160, 100, 20], ...
+              'Callback', @(src, ~) update_adsr('decay', src.Value));
+    
+    uicontrol('Style', 'text', 'String', 'Sustain:', ...
+              'Position', [500, 120, 50, 20], 'BackgroundColor', 'white');
+    Piano.sustain_slider = uicontrol('Style', 'slider', 'Min', 0, 'Max', 1, ...
+              'Value', ADSR.sustain, 'Position', [600, 120, 100, 20], ...
+              'Callback', @(src, ~) update_adsr('sustain', src.Value));
+    
+    uicontrol('Style', 'text', 'String', 'Release:', ...
+              'Position', [500, 80, 50, 20], 'BackgroundColor', 'white');
+    Piano.release_slider = uicontrol('Style', 'slider', 'Min', 0.01, 'Max', 1, ...
+              'Value', ADSR.release, 'Position', [600, 80, 100, 20], ...
+              'Callback', @(src, ~) update_adsr('release', src.Value));
 
     % oktaavi alas- ja ylöspainikkeet
     uicontrol('Style', 'pushbutton', 'String', 'octave down', ...
@@ -123,6 +165,28 @@ function set_waveform(shape)
     Piano.waveform = shape;
 end
 
+function update_adsr(parameter, value)
+    global ADSR
+    switch parameter
+        case 'attack'
+            ADSR.attack = value;
+        case 'decay'
+            ADSR.decay = value;
+        case 'sustain'
+            ADSR.sustain = value;
+        case 'release'
+            ADSR.release = value;
+    end
+end
+
+function update_mod_index(parameter, value)
+    global FM
+    switch parameter
+        case 'mod'
+            FM.mod_index = value;
+    end
+end
+
 % Funktio koskettimien taajuuksien päivittämiseen
 function update_keys()
     global Piano
@@ -164,12 +228,43 @@ function key_press(~, event)
 end
 
 function play_note(frequency, Fs)
+    global ADSR
     global Piano
+    global FM
+
+    % Haetaan ADSR parameterit
+    attack_time = ADSR.attack;
+    decay_time = ADSR.decay;
+    sustain_level = ADSR.sustain;
+    release_time = ADSR.release;
+
+    % Haetaan FM parametri
+    mod_index = FM.mod_index;
+
     % Nuotin kesto
     duration = 0.5;
     
     % Aikavektori
     t = 0:1/Fs:duration;
+
+    % Lasketaan ADSR-vaippapituudet
+    total_samples = length(t);
+    attack_samples = round(attack_time * Fs);
+    decay_samples = round(decay_time * Fs);
+    sustain_samples = max(0, total_samples - attack_samples - decay_samples - round(release_time * Fs));
+    release_samples = max(0, total_samples - (attack_samples + decay_samples + sustain_samples));
+    
+
+    % Luodaan ADSR-vaippa
+    adsr_envelope = [
+        linspace(0, 1, attack_samples), ...                 % Attack
+        linspace(1, sustain_level, decay_samples), ...      % Decay
+        sustain_level * ones(1, sustain_samples), ...       % Sustain
+        linspace(sustain_level, 0, release_samples) ...     % Release
+    ];
+
+    adsr_envelope = adsr_envelope(1:length(t));
+
 
     % Vibrato säädöt
     vibrato_frequency = 4;         
@@ -202,13 +297,13 @@ function play_note(frequency, Fs)
             y = sin(a + 2 * pi * frequency * vibrato);
         case 'fm'
             % Alla FM-synteesi
-            mod_freq = 100; % Modulaattoritaajuus (2x kantataajuus)
+            mod_freq = frequency; % Modulaattoritaajuus
             %mod_freq:
             % Pienet arvot (esim. 10–50 Hz) tuottavat hitaampaa muuntelua ja pulssimaisia efektiä
             %Suuret arvot (100–300 Hz) lisäävät rikkaampia harmonisia
             %komponentteja sekä "metallisia ääniä"
 
-            mod_index = 5; % Modulaatioindeksi = kuinka voimakkaasti modulaattori vaikuttaa
+            % Modulaatioindeksi = kuinka voimakkaasti modulaattori vaikuttaa
             % pienet arvot = hienovaraista muuntelua esim 2
             % suuret arvot = monimutkaisempia ja aggressiivisempia ääniä
             % esim 10
@@ -220,7 +315,10 @@ function play_note(frequency, Fs)
             inst_phase = sin(2 * pi .* mod_index .* mod .* t);
             
             y = inst_phase .* envelope;
+
     end
+
+    y = y .* adsr_envelope;
 
     % Soitetaan ääni
     sound(y, Fs);
