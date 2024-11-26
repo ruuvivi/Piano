@@ -56,18 +56,12 @@ function piano
     
     % Nuotin pituuden säädin ja painike (lyhyin = 1/16 piano nuotti, pisin = 1)
     uicontrol('Style', 'text', 'String', 'Note length:', ...
-              'Position', [500, 320, 50, 20], 'BackgroundColor', 'white');
+          'Position', [500, 320, 80, 20], 'BackgroundColor', 'white');
     Piano.dur_length = uicontrol('Style', 'popupmenu', ...
     'String', {'0.0625', '0.125', '0.25', '0.5', '0.75', '0.875', '0.9375', '1'}, ...
-    'Value', Piano.duration, ...
+    'Value', 4, ... % aloitus on vakio pituus 0.5 (4. arvo)
     'Position', [600, 320, 100, 20], ...
-    'Callback', @(src, ~) update_duration('dur', src.Value));
-    
-    % päivitetään dynaamisesti nuotin pituudet
-    uicontrol('Style', 'pushbutton', ...
-    'String', 'Update Durations', ...
-    'Position', [720, 320, 100, 20], ...
-    'Callback', @update_popup_menu);
+    'Callback', @(src, ~) update_duration('dur', src));
 
     % FM-mod taajuudelle painike
     uicontrol('Style', 'text', 'String', 'Frequency:', ...
@@ -265,24 +259,16 @@ function onFM(parameter)
 end
 
 % Functio: päivitetään nuotin pituus riippuen popup-menun valinnasta
-function update_duration(param, selected_value)
+function update_duration(parameter, src)
     global Piano
-    durations = get(Piano.dur_length, 'String');
-    if strcmp(param, 'dur')
-        Piano.duration = str2double(durations{selected_value}); % Numeeriseksi
-    end
-end
 
-% Functio: päivitetään popup-menu
-function update_popup_menu(~, ~)
-    global Piano
-    new_durations = {'1/16', '1/8', '1/4', '1/2', '1'};
-    
-    set(Piano.dur_length, 'String', new_durations);
-    
-    set(Piano.dur_length, 'Value', 1);
-    
-    Piano.duration = str2double(new_durations{1});
+    durations = get(src, 'String'); % Lista piuuksista
+    selected_value = get(src, 'Value'); % Valittu indeksi
+    selected_duration = str2double(durations{selected_value}); % Numeeriseksi
+
+    if strcmp(parameter, 'dur')
+        Piano.duration = selected_duration; % päivitetään globaali pituus
+    end
 end
 
 % Funktio koskettimien taajuuksien päivittämiseen
@@ -407,6 +393,7 @@ function play_note(frequency, Fs)
             end
         case 'sawtooth'
             if FM.active
+                % Alla FM-synteesi
                 mod = sin(2 * pi * mod_frequency * t);
                 y = sawtooth(2 * pi .* frequency .* t + mod_index .* sin(mod .* t));
             else
@@ -418,6 +405,7 @@ function play_note(frequency, Fs)
             vibrato = sin(2 * pi * vibrato_frequency * t) * vibrato_depth;
             a = 2 * pi * frequency * t;
             if FM.active
+                % Alla FM-synteesi
                 mod = sin(2 * pi * mod_frequency * t);
                 y = sin(a + 2 * pi .* frequency .* vibrato + mod_index .* sin(mod .* t));
             else         

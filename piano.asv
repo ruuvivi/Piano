@@ -57,9 +57,11 @@ function piano
     % Nuotin pituuden säädin ja painike (lyhyin = 1/16 piano nuotti, pisin = 1)
     uicontrol('Style', 'text', 'String', 'Note length:', ...
               'Position', [500, 320, 50, 20], 'BackgroundColor', 'white');
-    Piano.dur_length = uicontrol('Style', 'popupmenu', 'String', {'0.0625', '0.125', '0.25', '0.5', '0.75', '0.875', '0.9375, 1} ...
-              'Value', Piano.duration, 'Position', [600, 320, 100, 20], ...
-              'Callback', @(src, ~) update_duration('dur', src.Value));
+    Piano.dur_length = uicontrol('Style', 'popupmenu', ...
+    'String', {'0.0625', '0.125', '0.25', '0.5', '0.75', '0.875', '0.9375', '1'}, ...
+    'Value', Piano.duration, ...
+    'Position', [600, 320, 100, 20], ...
+    'Callback', @(src, ~) update_duration('dur', src.Value));
 
     % FM-mod taajuudelle painike
     uicontrol('Style', 'text', 'String', 'Frequency:', ...
@@ -229,14 +231,6 @@ function update_mod_frequency(parameter, value)
     end
 end
 
-function update_duration(parameter, value)
-    global Piano
-    switch parameter
-        case 'dur'
-            Piano.duration = value;
-    end
-end
-
 % Funktio: FM indeksi ja modulaattori nollataan
 function resetFM(mod, freq)
     global FM
@@ -264,6 +258,22 @@ function onFM(parameter)
     end
 end
 
+% Functio: päivitetään nuotin pituus riippuen popup-menun valinnasta
+function update_duration(parameter, value)
+    global Piano
+
+    durations = get(Piano.dur_length, 'String');
+
+    if strcmp(parameter, 'dur')
+        Piano.duration = str2double(durations{selected_value}); % Numeeriseksi
+
+    new_durations = {'0.05', '0.1', '0.2', '0.4', '0.6', '0.8', '1', '1.2'};
+    selected_value = src.Value;
+    set(Piano.dur_length, 'String', new_durations);
+    
+    Piano.duration = selected_duration;
+
+end
 
 % Funktio koskettimien taajuuksien päivittämiseen
 function update_keys()
@@ -387,6 +397,7 @@ function play_note(frequency, Fs)
             end
         case 'sawtooth'
             if FM.active
+                % Alla FM-synteesi
                 mod = sin(2 * pi * mod_frequency * t);
                 y = sawtooth(2 * pi .* frequency .* t + mod_index .* sin(mod .* t));
             else
@@ -398,6 +409,7 @@ function play_note(frequency, Fs)
             vibrato = sin(2 * pi * vibrato_frequency * t) * vibrato_depth;
             a = 2 * pi * frequency * t;
             if FM.active
+                % Alla FM-synteesi
                 mod = sin(2 * pi * mod_frequency * t);
                 y = sin(a + 2 * pi .* frequency .* vibrato + mod_index .* sin(mod .* t));
             else         
