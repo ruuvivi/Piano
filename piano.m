@@ -107,14 +107,19 @@ function piano
               'Position', [220, 360, 100, 30], 'Callback', @(~,~) set_waveform('square'), ...
               'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
 
+    % saha-aalto
+    uicontrol('Style', 'pushbutton', 'String', 'Sawtooth Wave', ...
+              'Position', [325, 360, 100, 30], 'Callback', @(~,~) set_waveform('sawtooth'), ...
+              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
+
      % vibrato
     uicontrol('Style', 'pushbutton', 'String', 'Vibrato', ...
-              'Position', [325, 360, 100, 30], 'Callback', @(~,~) set_waveform('vibrato'), ...
+              'Position', [430, 360, 100, 30], 'Callback', @(~,~) set_waveform('vibrato'), ...
               'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
 
     % fm-synteesi
     uicontrol('Style', 'pushbutton', 'String', 'FM-synthesis', ...
-              'Position', [430, 360, 100, 30], 'Callback', @(~,~) set_waveform('fm'), ...
+              'Position', [535, 360, 100, 30], 'Callback', @(~,~) set_waveform('fm'), ...
               'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
     
     % Luodaan valkoiset koskettimet
@@ -265,19 +270,11 @@ function play_note(frequency, Fs)
 
     adsr_envelope = adsr_envelope(1:length(t));
 
-
-    % Vibrato säädöt
-    vibrato_frequency = 4;         
-    vibrato_depth = 0.001;         
-
-    vibrato = sin(2 * pi * vibrato_frequency * t) * vibrato_depth;
-    a = 2 * pi * frequency * t;
-
     envelope = exp(-4 * t); % exponentiaalinen vaimenenminen jäljittämään pianon ääntä
 
     switch Piano.waveform
         case 'sine'
-            % Alla additiivinen synteesi piano-äänen simuloimiseksi
+            % Alla lisäävä synteesi piano-äänen simuloimiseksi
             % Luodaan siniaalto, FM-synteesi, taajuusmodulaatio
             y = sin(2 .* pi .* frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t);
             y = y + sin(2 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 2;
@@ -288,16 +285,21 @@ function play_note(frequency, Fs)
             y = fmmod(y,frequency,Fs,1000); % modulaatio
             y = y .* envelope;
         case 'triangle'
-            y = sawtooth(2 * pi * frequency * t); % Triangle wave
+            y = sawtooth(2 * pi * frequency * t, 0.5); % kolmioaalto
         case 'square'
-            y = square(2 * pi * frequency * t); % Square wave
+            y = square(2 * pi * frequency * t); % neliöaalto
         case 'sawtooth'
-            y = sawtooth(2 * pi * frequency * t); % Sawtooth wave
+            y = sawtooth(2 * pi * frequency * t); % saha-aalto
         case 'vibrato'
-            y = sin(a + 2 * pi * frequency * vibrato);
+            vibrato_frequency = 4;         
+            vibrato_depth = 0.001;         
+        
+            vibrato = sin(2 * pi * vibrato_frequency * t) * vibrato_depth;
+            a = 2 * pi * frequency * t;
+
+            y = sin(a + 2 * pi * frequency* vibrato); 
         case 'fm'
             % Alla FM-synteesi
-            mod_freq = frequency; % Modulaattoritaajuus
             %mod_freq:
             % Pienet arvot (esim. 10–50 Hz) tuottavat hitaampaa muuntelua ja pulssimaisia efektiä
             %Suuret arvot (100–300 Hz) lisäävät rikkaampia harmonisia
@@ -308,7 +310,7 @@ function play_note(frequency, Fs)
             % suuret arvot = monimutkaisempia ja aggressiivisempia ääniä
             % esim 10
             % Modulaattorioskillaatio
-            mod = sin(2 * pi * mod_freq * t);
+            mod = sin(2 * pi * frequency * t);
         
             % FM-synteesi: hetkellinen taajuus jota ohjaa modulaattori
             %inst_phase = sin(2 * pi * frequency * t + mod_index * mod);
