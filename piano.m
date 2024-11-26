@@ -47,13 +47,13 @@ function piano
     % Luodaan GUI ja määritetään mitä näppäintä koskettaessa mikäkin ääni
     f = figure('Name', 'Piano Syntikka', 'NumberTitle', 'off', ...
         'Position', [300, 300, 750, 400], 'MenuBar', 'none', 'Resize', 'on', ...
-        'KeyPressFcn', @key_press, ...
+        'WindowKeyPressFcn', @key_press, ...
         'Color', [0, 0.3, 0]);
 
     fontName = 'Matura MT Script Capitals';
     fontSize = 12;
     fontWeight = 'normal';
-    
+
     % Nuotin pituuden säädin ja painike (lyhyin = 1/16 piano nuotti, pisin = 1)
     length_values = [0.0625, 0.125, 0.25, 0.5, 0.75, 0.875, 0.9375, 1];
     length_labels = {'1/16', '1/8', '1/4', '1/2', '3/4', '7/8', '15/16', '1'};
