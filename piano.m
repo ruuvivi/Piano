@@ -55,13 +55,16 @@ function piano
     fontWeight = 'normal';
     
     % Nuotin pituuden säädin ja painike (lyhyin = 1/16 piano nuotti, pisin = 1)
+    length_values = [0.0625, 0.125, 0.25, 0.5, 0.75, 0.875, 0.9375, 1];
+    length_labels = {'1/16', '1/8', '1/4', '1/2', '3/4', '7/8', '15/16', '1'};
+
     uicontrol('Style', 'text', 'String', 'Note length:', ...
           'Position', [500, 320, 80, 20], 'BackgroundColor', 'white');
     Piano.dur_length = uicontrol('Style', 'popupmenu', ...
-    'String', {'0.0625', '0.125', '0.25', '0.5', '0.75', '0.875', '0.9375', '1'}, ...
+    'String', length_labels, ...
     'Value', 4, ... % aloitus on vakio pituus 0.5 (4. arvo)
     'Position', [600, 320, 100, 20], ...
-    'Callback', @(src, ~) update_duration('dur', src));
+    'Callback', @(src, ~) update_duration(src, length_values));
 
     % FM-mod taajuudelle painike
     uicontrol('Style', 'text', 'String', 'Frequency:', ...
@@ -259,16 +262,16 @@ function onFM(parameter)
 end
 
 % Functio: päivitetään nuotin pituus riippuen popup-menun valinnasta
-function update_duration(parameter, src)
+function update_duration(src, length_values)
     global Piano
 
-    durations = get(src, 'String'); % Lista piuuksista
+    %durations = get(src, 'String'); % Lista piuuksista
     selected_value = get(src, 'Value'); % Valittu indeksi
-    selected_duration = str2double(durations{selected_value}); % Numeeriseksi
+    selected_duration = length_values(selected_value); % Numeeriseksi
 
-    if strcmp(parameter, 'dur')
-        Piano.duration = selected_duration; % päivitetään globaali pituus
-    end
+
+    Piano.duration = selected_duration; % päivitetään globaali pituus
+   
 end
 
 % Funktio koskettimien taajuuksien päivittämiseen
