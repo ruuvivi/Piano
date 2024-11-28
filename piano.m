@@ -135,26 +135,26 @@ function piano
               'Callback', @(src, ~) update_mod_index('mod', src.Value));
 
     
-    bg1 = uibuttongroup('Title', 'FM Synthesis', ...
+   bg1 = uibuttongroup('Title', 'FM Synthesis', ...
                       'Position', [0.05, 0.7, 0.1, 0.1], ...  
                     'BackgroundColor', 'black', 'TitlePosition', 'centertop', ...
                     'ForegroundColor', 'white');
 
     % FM-synteesi OFF nappula
-    Piano.fm_off_button = uicontrol(bg1,'Style', 'radiobutton', 'String', 'OFF', ...
-        'Position', [70, 15, 50, 30], ...  
-        'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
-        'Value', ~FM.active, ...
-        'Callback', @(~,~) resetFM(Piano.mod_slider, Piano.freq_slider), ...
-        'BackgroundColor', 'black', 'ForegroundColor', 'white');
-        
+    Piano.fm_off_button = uicontrol(bg1, 'Style', 'radiobutton', 'String', 'OFF', ...
+            'Position', [70, 15, 50, 30], ...  
+            'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
+            'Value', ~FM.active, ...
+            'Callback', @(~,~) resetFM(Piano.mod_slider, Piano.freq_slider), ...
+            'BackgroundColor', 'black', 'ForegroundColor', 'white');
+    
     % FM-synteesi ON nappula
     Piano.fm_on_button = uicontrol(bg1, 'Style', 'radiobutton', 'String', 'ON', ...
-    'Position', [10, 15, 50, 30], ... 
-    'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
-    'Value', FM.active, ... 
-    'Callback', @(src, ~) multipleCallbacks(src), ...  % Call a function that handles multiple callbacks
-    'BackgroundColor', 'black', 'ForegroundColor', 'white');
+        'Position', [10, 15, 50, 30], ... 
+        'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
+        'Value', FM.active, ... 
+        'Callback', @(src, ~) onFM(), ...  
+        'BackgroundColor', 'black', 'ForegroundColor', 'white');
 
     % oktaavi alas- ja ylöspainikkeet
 
@@ -215,8 +215,6 @@ end
 
 function set_waveform(shape)
     global Piano
-    global FM
-    FM.active = false; % FM-modulaatio pois
     Piano.waveform = shape;
 end
 
@@ -245,38 +243,12 @@ function resetFM(mod, freq)
 end
 
 % Funktio: FM indeksi ja modulaattori päälle
-function onFM(parameter)
-    global FM
-    switch parameter
-        case 'fm'
-            FM.active = true;
-        case 'piano'
-            FM.active = true;
-        case 'triangle'
-            FM.active = true;
-        case 'square'
-            FM.active = true;
-        case 'sawtooth'
-            FM.active = true;
-        case 'vibrato'
-            FM.active = true;
-    end
+function onFM(~)
+global FM
+      FM.active = true;  
 end
 
-function multipleCallbacks(~)
-    
-    onFM('fm');
-  
-    onFM('piano');
-   
-    onFM('vibrato');
-    
-    onFM('triangle');
 
-    onFM('square');
-
-    onFM('sawtooth');
-end
 
 % Funktio: päivitetään nuotin pituus riippuen popup-menun valinnasta
 function update_duration(src, length_values)
