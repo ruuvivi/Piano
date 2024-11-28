@@ -149,12 +149,12 @@ function piano
         'BackgroundColor', 'black', 'ForegroundColor', 'white');
         
     % FM-synteesi ON nappula
-    Piano.fm_on_button = uicontrol(bg1,'Style', 'radiobutton', 'String', 'ON', ...
-        'Position', [10, 15, 50, 30], ... 
-        'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
-        'Value', FM.active, ... 
-        'Callback', @(~,~) onFM('fm'), ...
-        'BackgroundColor', 'black', 'ForegroundColor', 'white');
+    Piano.fm_on_button = uicontrol(bg1, 'Style', 'radiobutton', 'String', 'ON', ...
+    'Position', [10, 15, 50, 30], ... 
+    'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
+    'Value', FM.active, ... 
+    'Callback', @(src, ~) multipleCallbacks(src), ...  % Call a function that handles multiple callbacks
+    'BackgroundColor', 'black', 'ForegroundColor', 'white');
 
     % oktaavi alas- ja ylöspainikkeet
 
@@ -261,6 +261,21 @@ function onFM(parameter)
         case 'vibrato'
             FM.active = true;
     end
+end
+
+function multipleCallbacks(~)
+    
+    onFM('fm');
+  
+    onFM('piano');
+   
+    onFM('vibrato');
+    
+    onFM('triangle');
+
+    onFM('square');
+
+    onFM('sawtooth');
 end
 
 % Funktio: päivitetään nuotin pituus riippuen popup-menun valinnasta
