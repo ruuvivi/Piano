@@ -177,7 +177,7 @@ function piano
     
     % Paikat mustille koskettimille (valkoisten keskelle)
     black_key_positions = [55, 105, 205, 255, 305,...  % Ensimmäinen oktaavi
-                           405, 455, 555, 605, 655,...  
+                           405, 455, 555, 605, 655,...  % Toinen oktaavi
                            755, 805, 905, 955, 1005]; % Kolmas oktaavi
 
     for i = 1:length(black_key_names)
@@ -218,20 +218,6 @@ function set_waveform(shape)
     global FM
     FM.active = false; % FM-modulaatio pois
     Piano.waveform = shape;
-end
-
-function update_adsr(parameter, value)
-    global ADSR
-    switch parameter
-        case 'attack'
-            ADSR.attack = value;
-        case 'decay'
-            ADSR.decay = value;
-        case 'sustain'
-            ADSR.sustain = value;
-        case 'release'
-            ADSR.release = value;
-    end
 end
 
 function update_mod_index(parameter, value)
@@ -421,10 +407,8 @@ function update_adsr(param, value)
     ylabel(axADSR, 'Amplitude', 'Color', 'white');
     title(axADSR, 'ADSR Envelope', 'Color', 'white'); 
     grid(axADSR, 'on');
-
     axADSR.XColor = 'white'; 
     axADSR.YColor = 'white'; 
-    
     axADSR.Color = 'black'; 
 end 
 
@@ -540,23 +524,10 @@ function play_note(frequency, Fs)
         case 'sin'
             if FM.active
                 % Alla FM-synteesi
-                %mod_freq:
-                % Pienet arvot (esim. 10–50 Hz) tuottavat hitaampaa muuntelua ja pulssimaisia efektiä
-                %Suuret arvot (100–300 Hz) lisäävät rikkaampia harmonisia
-                %komponentteja sekä "metallisia ääniä"
-    
-                % Modulaatioindeksi = kuinka voimakkaasti modulaattori vaikuttaa
-                % pienet arvot = hienovaraista muuntelua esim 2
-                % suuret arvot = monimutkaisempia ja aggressiivisempia ääniä
-                % esim 10
-                % Modulaattorioskillaatio
                 mod = sin(2 * pi * mod_frequency * t);
-            
-                % FM-synteesi: hetkellinen taajuus jota ohjaa modulaattori
-                %inst_phase = sin(2 * pi * frequency * t + mod_index * mod);
                 y = sin(2 * pi .* frequency .* t + mod_index .* sin(mod .* t));
             else
-                y = sin(2 * pi * frequency * t);  % Jos FM ei ole aktiivinen, käytetään siniaaltoa
+                y = sin(2 * pi * frequency * t);  
             end
     end
 
