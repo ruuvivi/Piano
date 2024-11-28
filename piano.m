@@ -1,5 +1,5 @@
+% Pääfunktio
 function piano
-
     clc;
     clear all;
     close all;
@@ -121,6 +121,7 @@ function piano
           'BackgroundColor', [0.1, 0.1, 0.1], 'ForegroundColor', 'white');
     Piano.freq_slider = uicontrol('Style', 'slider', 'Min', 0, 'Max', 2000, ...
               'Value', FM.mod_frequency, 'Position', [120, 480, 70, 20], ...
+              'BackgroundColor', [0.1, 0.5, 0.9], ... 
               'Callback', @(src, ~) update_mod_frequency('freq', src.Value));
 
     % FM-mod indeksille painike
@@ -130,6 +131,7 @@ function piano
           'BackgroundColor', [0.1, 0.1, 0.1], 'ForegroundColor', 'white');
     Piano.mod_slider = uicontrol('Style', 'slider', 'Min', 0, 'Max', 20, ...
               'Value', FM.mod_index, 'Position', [120, 450, 70, 20], ...
+              'BackgroundColor', [0.1, 0.5, 0.9], ... 
               'Callback', @(src, ~) update_mod_index('mod', src.Value));
 
     
@@ -354,6 +356,7 @@ global ADSR
     
     Piano.attack_slider = uicontrol('Style', 'slider', 'Min', 0.01, 'Max', 1, ...
               'Value', ADSR.attack, 'Position', [350, 520, 100, 20], ...
+              'BackgroundColor', [0.1, 0.5, 0.9], ... 
               'Callback', @(src, ~) update_adsr('attack', src.Value));
     
     % Decay säädin
@@ -364,6 +367,7 @@ global ADSR
     
     Piano.decay_slider = uicontrol('Style', 'slider', 'Min', 0.01, 'Max', 1, ...
               'Value', ADSR.decay, 'Position', [350, 480, 100, 20], ...
+              'BackgroundColor', [0.1, 0.5, 0.9], ... 
               'Callback', @(src, ~) update_adsr('decay', src.Value));
     
     % Sustain säädin
@@ -374,6 +378,7 @@ global ADSR
     
     Piano.sustain_slider = uicontrol('Style', 'slider', 'Min', 0, 'Max', 1, ...
               'Value', ADSR.sustain, 'Position', [350, 440, 100, 20], ...
+              'BackgroundColor', [0.1, 0.5, 0.9], ...  
               'Callback', @(src, ~) update_adsr('sustain', src.Value));
     
     % Release säädin
@@ -384,6 +389,7 @@ global ADSR
     
     Piano.release_slider = uicontrol('Style', 'slider', 'Min', 0.01, 'Max', 1, ...
               'Value', ADSR.release, 'Position', [350, 400, 100, 20], ...
+              'BackgroundColor', [0.1, 0.5, 0.9], ... 
               'Callback', @(src, ~) update_adsr('release', src.Value));
 
 % Funktio: ADSR päivitys ja kuvaaja
@@ -427,7 +433,7 @@ update_adsr('', 0);
 
 end
 
-% Funktio: ääniaaltojen päivittäminen
+% Funktio: ääniaaltojen päivittäminen, nuotin soitto
 function play_note(frequency, Fs)
     global ADSR
     global Piano
@@ -487,7 +493,6 @@ function play_note(frequency, Fs)
                 y = y/(max(abs(y)));
             else
                 % Alla lisäävä synteesi piano-äänen simuloimiseksi
-                % Luodaan siniaalto, FM-synteesi, taajuusmodulaatio
                 y = sin(2 .* pi .* frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t);
                 y = y + sin(2 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 2;
                 y = y + sin(3 .* 2 .* pi * frequency .* t) .* exp(-0.0004 .* 2 .* pi .* frequency .* t) ./ 4;
