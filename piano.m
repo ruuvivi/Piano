@@ -7,13 +7,6 @@ function piano
     
     Piano.waveform = 'piano';
 
-    % ADSR parameterit
-    global ADSR
-    ADSR.attack = 0.1;   % vakio attack aika
-    ADSR.decay = 0.1;    % vakio decay aika
-    ADSR.sustain = 0.7;  % vakio sustain taso
-    ADSR.release = 0.2;  % vakio release aika
-
     global FM
     FM.mod_index = 10; % vakio mod indeksi
     FM.mod_frequency = 440; % vakio mod taajuus = sama kuin perustaajuus
@@ -21,11 +14,11 @@ function piano
 
     % A-nuotin taajuus (Hz) tunnustettu standardi sävelkorkeus
     A = 440;
-    ToneId = -9:2;
+    ToneId = -24:24;
     Piano.Sample = cell(size(ToneId));
     
     % Lasketaan nuotteja vastaavat taajuudet
-    Piano.note_frequencies = A * 2.^(ToneId/12);
+    Piano.note_frequencies = A * 2.^(ToneId / 12);
 
     % Näyteenottotaajuus
     Piano.Fs = 44100;
@@ -34,21 +27,28 @@ function piano
     Piano.duration = 0.5;
     
     % Nimet koskettimille
-    white_key_names = {'C', 'D', 'E', 'F', 'G', 'A', 'B'};
-    black_key_names = {'C#', 'D#', 'F#', 'G#', 'A#'};
     
+    % Kolmen oktaavin valkoisten nuottien nimet
+    white_key_names = {'C', 'D', 'E', 'F', 'G', 'A', 'B', ...
+                      'C', 'D', 'E', 'F', 'G', 'A', 'B', ...
+                      'C', 'D', 'E', 'F', 'G', 'A', 'B'};
     
+    % Kolmen oktaavin mustien nuottien nimet
+    black_key_names = {'C#', 'D#', 'F#', 'G#', 'A#', ...
+                       'C#', 'D#', 'F#', 'G#', 'A#', ...
+                       'C#', 'D#', 'F#', 'G#', 'A#'};
+        
     % Valkoiset koskettimet vastaaviin taajuuksiin
-    Piano.white_key_frequencies = Piano.note_frequencies([1, 3, 5, 6, 8, 10, 12]);
+    Piano.white_key_frequencies = Piano.note_frequencies([1, 3, 5, 6, 8, 10, 12, 13, 15, 17, 18, 20, 22, 24, 25, 27, 29, 30, 32, 34, 36]);
     
     % Mustat koskettimet vastaaviin taajuuksiin
-    Piano.black_key_frequencies = Piano.note_frequencies([2, 4, 7, 9, 11]);
+    Piano.black_key_frequencies = Piano.note_frequencies([2, 4, 7, 9, 11, 14, 16, 19, 21, 23, 26, 28, 31, 33, 35]);
     
     % Luodaan GUI ja määritetään mitä näppäintä koskettaessa mikäkin ääni
-    f = figure('Name', 'Piano Syntikka', 'NumberTitle', 'off', ...
+    Piano.f = figure('Name', 'Piano Syntikka', 'NumberTitle', 'off', ...
         'Position', [300, 300, 750, 400], 'MenuBar', 'none', 'Resize', 'on', ...
         'KeyPressFcn', @key_press, ...
-        'Color', [0, 0.3, 0]);
+        'Color', [0.1, 0.1, 0.1]);
 
     fontName = 'Matura MT Script Capitals';
     fontSize = 12;
@@ -67,100 +67,88 @@ function piano
     'Callback', @(src, ~) update_duration(src, length_values));
 
     
-
-   % ADSR-painikkeet
-    uicontrol('Style', 'text', 'String', 'ENVELOPE', ...
-              'Position', [450, 240, 70, 20], 'BackgroundColor', 'white');
-
-    uicontrol('Style', 'text', 'String', 'Attack:', ...
-              'Position', [400, 200, 50, 20], 'BackgroundColor', 'white');
-    Piano.attack_slider = uicontrol('Style', 'slider', 'Min', 0.01, 'Max', 1, ...
-              'Value', ADSR.attack, 'Position', [470, 200, 100, 20], ...
-              'Callback', @(src, ~) update_adsr('attack', src.Value));
-    
-    uicontrol('Style', 'text', 'String', 'Decay:', ...
-              'Position', [400, 160, 50, 20], 'BackgroundColor', 'white');
-    Piano.decay_slider = uicontrol('Style', 'slider', 'Min', 0.01, 'Max', 1, ...
-              'Value', ADSR.decay, 'Position', [470, 160, 100, 20], ...
-              'Callback', @(src, ~) update_adsr('decay', src.Value));
-    
-    uicontrol('Style', 'text', 'String', 'Sustain:', ...
-              'Position', [400, 120, 50, 20], 'BackgroundColor', 'white');
-    Piano.sustain_slider = uicontrol('Style', 'slider', 'Min', 0, 'Max', 1, ...
-              'Value', ADSR.sustain, 'Position', [470, 120, 100, 20], ...
-              'Callback', @(src, ~) update_adsr('sustain', src.Value));
-    
-    uicontrol('Style', 'text', 'String', 'Release:', ...
-              'Position', [400, 80, 50, 20], 'BackgroundColor', 'white');
-    Piano.release_slider = uicontrol('Style', 'slider', 'Min', 0.01, 'Max', 1, ...
-              'Value', ADSR.release, 'Position', [470, 80, 100, 20], ...
-              'Callback', @(src, ~) update_adsr('release', src.Value));
-    
     % nappuloita eri äniaalloille
 
     bg = uibuttongroup('Title', 'Waveform Select', ...
-                      'Position', [0, 0.8, 0.8, 0.2]);
+                      'Position', [0, 0.85, 0.5, 0.15], ...  
+                   'BackgroundColor', 'black', 'TitlePosition', 'centertop', ...
+                   'ForegroundColor', 'white'); 
     
     % piano
     uicontrol(bg, 'Style', 'radiobutton', 'String', 'Piano', ...
-              'Position', [10, 20, 100, 30], 'Callback', @(~,~) set_waveform('piano'), ...
-              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
+              'Position', [10, 40, 100, 30], 'Callback', @(~,~) set_waveform('piano'), ...
+              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
+          'BackgroundColor', 'black', 'ForegroundColor', 'white');
     
     % kolmioaalto
     uicontrol(bg, 'Style', 'radiobutton', 'String', 'Triangle', ...
-              'Position', [115, 20, 100, 30], 'Callback', @(~,~) set_waveform('triangle'), ...
-              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
+              'Position', [115, 40, 100, 30], 'Callback', @(~,~) set_waveform('triangle'), ...
+              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
+          'BackgroundColor', 'black', 'ForegroundColor', 'white');
     
     % neliöaalto
     uicontrol(bg, 'Style', 'radiobutton', 'String', 'Square', ...
-              'Position', [220, 20, 100, 30], 'Callback', @(~,~) set_waveform('square'), ...
-              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
+              'Position', [220, 40, 100, 30], 'Callback', @(~,~) set_waveform('square'), ...
+              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
+          'BackgroundColor', 'black', 'ForegroundColor', 'white');
     
     % saha-aalto
     uicontrol(bg, 'Style', 'radiobutton', 'String', 'Sawtooth', ...
-              'Position', [325, 20, 100, 30], 'Callback', @(~,~) set_waveform('sawtooth'), ...
-              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
+              'Position', [325, 40, 100, 30], 'Callback', @(~,~) set_waveform('sawtooth'), ...
+              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
+          'BackgroundColor', 'black', 'ForegroundColor', 'white');
     
     % vibrato
     uicontrol(bg, 'Style', 'radiobutton', 'String', 'Vibrato', ...
-              'Position', [430, 20, 100, 30], 'Callback', @(~,~) set_waveform('vibrato'), ...
-              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
+              'Position', [430, 40, 100, 30], 'Callback', @(~,~) set_waveform('vibrato'), ...
+              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
+          'BackgroundColor', 'black', 'ForegroundColor', 'white');
     
     % siniaalto
     uicontrol(bg, 'Style', 'radiobutton', 'String', 'Sine', ...
-              'Position', [535, 20, 100, 30], 'Callback',  @(~,~) set_waveform('sin'), ...
-              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
+              'Position', [535, 40, 100, 30], 'Callback',  @(~,~) set_waveform('sin'), ...
+              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
+          'BackgroundColor', 'black', 'ForegroundColor', 'white');
 
     % FM-synteesi
 
-    uicontrol('Style', 'text', 'String', 'FM-SYNTHESIS', ...
-              'Position', [590, 240, 80, 20], 'BackgroundColor', 'white');
-
     % FM-mod taajuudelle painike
     uicontrol('Style', 'text', 'String', 'Frequency:', ...
-              'Position', [590, 160, 50, 20], 'BackgroundColor', 'white');
+              'Position', [5, 480, 50, 20], 'BackgroundColor', 'white');
     Piano.freq_slider = uicontrol('Style', 'slider', 'Min', 0, 'Max', 2000, ...
-              'Value', FM.mod_frequency, 'Position', [660, 160, 70, 20], ...
+              'Value', FM.mod_frequency, 'Position', [60, 480, 70, 20], ...
               'Callback', @(src, ~) update_mod_frequency('freq', src.Value));
 
     % FM-mod indeksille painike
     uicontrol('Style', 'text', 'String', 'Index:', ...
-              'Position', [590, 120, 50, 20], 'BackgroundColor', 'white');
+              'Position', [5, 450, 50, 20], 'BackgroundColor', 'white');
     Piano.mod_slider = uicontrol('Style', 'slider', 'Min', 0, 'Max', 20, ...
-              'Value', FM.mod_index, 'Position', [660, 120, 70, 20], ...
+              'Value', FM.mod_index, 'Position', [60, 450, 70, 20], ...
               'Callback', @(src, ~) update_mod_index('mod', src.Value));
 
     
-    % fm-synteesi OFF
-    uicontrol('Style', 'pushbutton', 'String', 'OFF', ...
-              'Position', [590, 200, 50, 30], 'Callback', @(~,~) resetFM(Piano.mod_slider, Piano.freq_slider), ...
-              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
-    % fm-synteesi ON
-    uicontrol('Style', 'pushbutton', 'String', 'ON', ...
-              'Position', [650, 200, 50, 30], 'Callback', @(~,~) onFM('fm'), ...
-              'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold');
+    bg1 = uibuttongroup('Title', 'FM Synthesis', ...
+                      'Position', [0, 0.7, 0.1, 0.1], ...  
+                    'BackgroundColor', 'black', 'TitlePosition', 'centertop', ...
+                    'ForegroundColor', 'white');
 
-     % oktaavi alas- ja ylöspainikkeet
+    % FM-synteesi OFF nappula
+    Piano.fm_off_button = uicontrol(bg1,'Style', 'radiobutton', 'String', 'OFF', ...
+        'Position', [70, 15, 50, 30], ...  
+        'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
+        'Value', ~FM.active, ...
+        'Callback', @(~,~) resetFM(Piano.mod_slider, Piano.freq_slider), ...
+        'BackgroundColor', 'black', 'ForegroundColor', 'white');
+        
+    % FM-synteesi ON nappula
+    Piano.fm_on_button = uicontrol(bg1,'Style', 'radiobutton', 'String', 'ON', ...
+        'Position', [10, 15, 50, 30], ... 
+        'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
+        'Value', FM.active, ... 
+        'Callback', @(~,~) onFM('fm'), ...
+        'BackgroundColor', 'black', 'ForegroundColor', 'white');
+
+    % oktaavi alas- ja ylöspainikkeet
 
     uicontrol('Style', 'pushbutton', 'String', 'octave down', ...
               'Position', [10, 280, 100, 30], 'Callback', @octave_down, ...
@@ -172,17 +160,18 @@ function piano
     
     % Luodaan valkoiset koskettimet
     for i = 1:length(white_key_names)
-        Piano.white_keys(i) = uicontrol('Style', 'pushbutton', 'String', white_key_names{i}, ...
-            'Position', [(i-1)*50 + 20, 40, 50, 200], ...
-            'BackgroundColor', 'white', ...
-            'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
-            'Callback', @(~,~) play_note(Piano.white_key_frequencies(i), Piano.Fs));
+    Piano.white_keys(i) = uicontrol('Style', 'pushbutton', 'String', white_key_names{i}, ...
+        'Position', [(i-1)*50 + 20, 40, 50, 200], ...
+        'BackgroundColor', 'white', ...
+        'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
+        'Callback', @(~,~) play_note(Piano.white_key_frequencies(i), Piano.Fs));
     end
     
     % Paikat mustille koskettimille (valkoisten keskelle)
-    black_key_positions = [55, 105, 205, 255, 305];  
+    black_key_positions = [55, 105, 205, 255, 305,...  % Ensimmäinen oktaavi
+                           405, 455, 555, 605, 655,...  
+                           755, 805, 905, 955, 1005]; % Kolmas oktaavi
 
-    % Luodaan mustat koskettimet ja tallennetaan ne Piano-rakenteeseen
     for i = 1:length(black_key_names)
         Piano.black_keys(i) = uicontrol('Style', 'pushbutton', 'String', black_key_names{i}, ...
             'Position', [black_key_positions(i), 140, 30, 120], ...
@@ -194,6 +183,8 @@ function piano
     % Määritetään näppäimistönäppäimet vastaamaan koskettimia
     Piano.white_key_keyboard = {'a', 's', 'd', 'f', 'g', 'h', 'j'};
     Piano.black_key_keyboard = {'q','w', 'e', 'r', 't'};
+
+    piano_synth_gui()
 
 end
 
@@ -296,8 +287,8 @@ function update_keys()
     global Piano
     
     % Päivitetään valkoiset ja mustat kosketintaajuudet
-    Piano.white_key_frequencies = Piano.note_frequencies([1, 3, 5, 6, 8, 10, 12]);
-    Piano.black_key_frequencies = Piano.note_frequencies([2, 4, 7, 9, 11]);
+    Piano.white_key_frequencies = Piano.note_frequencies([1, 3, 5, 6, 8, 10, 12, 13, 15, 17, 18, 20, 22, 24, 25, 27, 29, 30, 32, 34, 36]);
+    Piano.black_key_frequencies = Piano.note_frequencies([2, 4, 7, 9, 11, 14, 16, 19, 21, 23, 26, 28, 31, 33, 35]);
     
     % Päivitetyt taajuudet valkoisille koskettimille
     for i = 1:length(Piano.white_keys)
@@ -329,6 +320,91 @@ function key_press(~, event)
     if ~isempty(black_key_i)
         play_note(Piano.black_key_frequencies(black_key_i), Piano.Fs);
     end
+end
+
+function piano_synth_gui()
+global Piano
+global ADSR
+
+    % ADSR plotin pohja
+    axADSR = axes('Parent', Piano.f, 'Position', [0.6, 0.55, 0.4, 0.2]); 
+    title(axADSR, 'ADSR Envelope');
+    xlabel(axADSR, 'Time');
+    ylabel(axADSR, 'Amplitude');
+    grid(axADSR, 'on');
+    
+    % ADSR alkuarvot
+    ADSR.attack = 0.1;
+    ADSR.decay = 0.2;
+    ADSR.sustain = 0.7;
+    ADSR.release = 0.5;
+    
+    % Attack säädin
+    uicontrol('Style', 'text', 'String', 'Attack:', ...
+              'Position', [530, 520, 50, 20], 'BackgroundColor', 'white');
+    Piano.attack_slider = uicontrol('Style', 'slider', 'Min', 0.01, 'Max', 1, ...
+              'Value', ADSR.attack, 'Position', [600, 520, 100, 20], ...
+              'Callback', @(src, ~) update_adsr('attack', src.Value));
+    
+    % Decay säädin
+    uicontrol('Style', 'text', 'String', 'Decay:', ...
+              'Position', [530, 480, 50, 20], 'BackgroundColor', 'white');
+    Piano.decay_slider = uicontrol('Style', 'slider', 'Min', 0.01, 'Max', 1, ...
+              'Value', ADSR.decay, 'Position', [600, 480, 100, 20], ...
+              'Callback', @(src, ~) update_adsr('decay', src.Value));
+    
+    % Sustain säädin
+    uicontrol('Style', 'text', 'String', 'Sustain:', ...
+              'Position', [530, 440, 50, 20], 'BackgroundColor', 'white');
+    Piano.sustain_slider = uicontrol('Style', 'slider', 'Min', 0, 'Max', 1, ...
+              'Value', ADSR.sustain, 'Position', [600, 440, 100, 20], ...
+              'Callback', @(src, ~) update_adsr('sustain', src.Value));
+    
+    % Release säädin
+    uicontrol('Style', 'text', 'String', 'Release:', ...
+              'Position', [530, 400, 50, 20], 'BackgroundColor', 'white');
+    Piano.release_slider = uicontrol('Style', 'slider', 'Min', 0.01, 'Max', 1, ...
+              'Value', ADSR.release, 'Position', [600, 400, 100, 20], ...
+              'Callback', @(src, ~) update_adsr('release', src.Value));
+
+function update_adsr(param, value)
+    switch param
+        case 'attack', ADSR.attack = value;
+        case 'decay', ADSR.decay = value;
+        case 'sustain', ADSR.sustain = value;
+        case 'release', ADSR.release = value;
+    end
+
+    % Lasketaan ADSR-vaippa
+    t = linspace(0, ADSR.attack + ADSR.decay + ADSR.sustain + ADSR.release, 100);
+    y = zeros(size(t));
+    t_a = t <= ADSR.attack;
+    t_d = (t > ADSR.attack) & (t <= ADSR.attack + ADSR.decay);
+    t_s = (t > ADSR.attack + ADSR.decay) & (t <= ADSR.attack + ADSR.decay + ADSR.sustain);
+    t_r = t > ADSR.attack + ADSR.decay + ADSR.sustain;
+
+    % Vaipan arvot
+    y(t_a) = t(t_a) / ADSR.attack; 
+    y(t_d) = 1 - (t(t_d) - ADSR.attack) / ADSR.decay; 
+    y(t_s) = ADSR.sustain; 
+    y(t_r) = ADSR.sustain * (1 - (t(t_r) - (ADSR.attack + ADSR.decay + ADSR.sustain)) / ADSR.release); % Release phase
+
+    % piirretään ADSR-kuvaaja
+    plot(axADSR, t, y, 'LineWidth', 2);
+    xlabel(axADSR, 'Time', 'Color', 'white'); 
+    ylabel(axADSR, 'Amplitude', 'Color', 'white');
+    title(axADSR, 'ADSR Envelope', 'Color', 'white'); 
+    grid(axADSR, 'on');
+
+    axADSR.XColor = 'white'; 
+    axADSR.YColor = 'white'; 
+    
+    axADSR.Color = 'black'; 
+end 
+
+% Alustetaan ADSR oletusarvot
+update_adsr('', 0);
+
 end
 
 function play_note(frequency, Fs)
