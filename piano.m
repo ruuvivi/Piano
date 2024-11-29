@@ -47,7 +47,7 @@ function piano
     % Luodaan GUI ja määritetään mitä näppäintä koskettaessa mikäkin ääni
     Piano.f = figure('Name', 'Piano Syntikka', 'NumberTitle', 'off', ...
         'Position', [300, 300, 750, 400], 'MenuBar', 'none', 'Resize', 'on', ...
-        'KeyPressFcn', @key_press, ...
+        'WindowKeyPressFcn', @key_press, ...
         'Color', [0.1, 0.1, 0.1]);
 
     fontName = 'Arial';
@@ -193,10 +193,10 @@ function piano
     end
 
     % Määritetään näppäimistönäppäimet vastaamaan koskettimia
-    Piano.white_key_keyboard = {'a', 's', 'd', 'f', 'g', 'h', 'j'};
-    Piano.black_key_keyboard = {'q','w', 'e', 'r', 't'};
+    Piano.white_key_keyboard = {'a', 's', 'd', 'f', 'g', 'h', 'j', 'k'};
+    Piano.black_key_keyboard = {'w', 'e', 't','y', 'u'};
 
-    piano_synth_gui()
+    piano_synth_gui();
 
 end
 
@@ -291,6 +291,12 @@ function key_press(~, event)
     global Piano
     % Tarkista, mikä näppäin on painettu
     key = event.Key;
+
+    % keskioktaavi valkoiset koskettimet
+    Piano.white_key_frequencies_2 = Piano.note_frequencies([13, 15, 17, 18, 20, 22, 24, 25]);
+    
+    % keskioktaavi mustat koskettimet
+    Piano.black_key_frequencies_2 = Piano.note_frequencies([14, 16, 19, 21, 23]);
     
     % Tarkistetaan, onko näppäin valkoinen tai musta kosketin
     white_key_i = find(strcmp(Piano.white_key_keyboard, key), 1);
@@ -298,12 +304,12 @@ function key_press(~, event)
     
     % Jos painettiin valkoista kosketinta vastaavaa näppäintä
     if ~isempty(white_key_i)
-        play_note(Piano.white_key_frequencies(white_key_i), Piano.Fs);
+        play_note(Piano.white_key_frequencies_2(white_key_i), Piano.Fs);
     end
     
     % Jos painettiin mustaa kosketinta vastaavaa näppäintä
     if ~isempty(black_key_i)
-        play_note(Piano.black_key_frequencies(black_key_i), Piano.Fs);
+        play_note(Piano.black_key_frequencies_2(black_key_i), Piano.Fs);
     end
 end
 
