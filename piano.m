@@ -431,12 +431,14 @@ function update_adsr(param, value)
 global ADSR
 global Piano
 
+    
 % ADSR plotin pohja
     axADSR = axes('Parent', Piano.f, 'Position', [0.4, 0.55, 0.4, 0.2]); 
     title(axADSR, 'ADSR Envelope');
     xlabel(axADSR, 'Time');
     ylabel(axADSR, 'Amplitude');
     grid(axADSR, 'on');
+
 
     switch param
         case 'attack', ADSR.attack = value;
@@ -459,6 +461,7 @@ global Piano
     y(t_s) = ADSR.sustain; 
     y(t_r) = ADSR.sustain * (1 - (t(t_r) - (ADSR.attack + ADSR.decay + ADSR.sustain)) / ADSR.release); 
 
+
     % piirretään ADSR-kuvaaja
     plot(axADSR, t, y, 'LineWidth', 2);
     xlabel(axADSR, 'Time', 'Color', 'white'); 
@@ -468,10 +471,11 @@ global Piano
     axADSR.XColor = 'white'; 
     axADSR.YColor = 'white'; 
     axADSR.Color = 'black'; 
+
+    axADSR.XTickLabel = []; 
+    axADSR.YTickLabel = [];  
+    
 end 
-
-
-
 
 
 % Funktio: ääniaaltojen päivittäminen, nuotin soitto
