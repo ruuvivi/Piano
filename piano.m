@@ -88,7 +88,7 @@ function piano
     
     % kolmioaalto
     uicontrol(bg, 'Style', 'radiobutton', 'String', 'Triangle', ...
-              'Position', [115, 40, 100, 30], 'Callback', @(~,~) set_waveform('triangle'), ...
+              'Position', [430, 40, 100, 30], 'Callback', @(~,~) set_waveform('triangle'), ...
               'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
           'BackgroundColor', 'black', 'ForegroundColor', 'white');
     
@@ -106,13 +106,13 @@ function piano
     
     % vibrato
     uicontrol(bg, 'Style', 'radiobutton', 'String', 'Vibrato', ...
-              'Position', [430, 40, 100, 30], 'Callback', @(~,~) set_waveform('vibrato'), ...
+              'Position', [535, 40, 100, 30], 'Callback', @(~,~) set_waveform('vibrato'), ...
               'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
           'BackgroundColor', 'black', 'ForegroundColor', 'white');
     
     % siniaalto
     uicontrol(bg, 'Style', 'radiobutton', 'String', 'Sine', ...
-              'Position', [535, 40, 100, 30], 'Callback',  @(~,~) set_waveform('sin'), ...
+              'Position', [115, 40, 100, 30], 'Callback',  @(~,~) set_waveform('sin'), ...
               'FontName', 'Arial', 'FontSize', 10, 'FontWeight', 'bold', ...
           'BackgroundColor', 'black', 'ForegroundColor', 'white');
 
@@ -388,9 +388,9 @@ function update_adsr(param, value)
 
     % Vaipan arvot
     y(t_a) = t(t_a) / ADSR.attack; 
-    y(t_d) = 1 - (t(t_d) - ADSR.attack) / ADSR.decay; 
+    y(t_d) = 1 - (1 - ADSR.sustain) * (t(t_d) - ADSR.attack) / ADSR.decay; 
     y(t_s) = ADSR.sustain; 
-    y(t_r) = ADSR.sustain * (1 - (t(t_r) - (ADSR.attack + ADSR.decay + ADSR.sustain)) / ADSR.release); % Release phase
+    y(t_r) = ADSR.sustain * (1 - (t(t_r) - (ADSR.attack + ADSR.decay + ADSR.sustain)) / ADSR.release); 
 
     % piirretään ADSR-kuvaaja
     plot(axADSR, t, y, 'LineWidth', 2);
@@ -449,7 +449,6 @@ function play_note(frequency, Fs)
     ];
 
     adsr_envelope = adsr_envelope(1:length(t));
-   
 
     switch Piano.waveform
         case 'piano'
